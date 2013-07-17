@@ -30,7 +30,11 @@ public class MainGui {
 		try {
 			robot = new Robot();
 			MainGui window = new MainGui();
+<<<<<<< HEAD
 			window.registerListener(); // Test..
+=======
+			window.registerListener(); // Test
+>>>>>>> branch 'master' of https://github.com/easyLearn/easyLearn.git
 			window.open();
 			window.unregisterListener();
 		} catch (Exception e) {
