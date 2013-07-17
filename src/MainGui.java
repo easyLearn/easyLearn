@@ -30,7 +30,7 @@ public class MainGui {
 		try {
 			robot = new Robot();
 			MainGui window = new MainGui();
-			window.registerListener(); // Test
+			window.registerListener(); // Test..
 			window.open();
 			window.unregisterListener();
 		} catch (Exception e) {
