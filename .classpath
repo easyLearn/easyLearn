@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="C:/Users/Tobias Wolf/Desktop/eclipse (eigenconfig)/plugins/org.eclipse.osgi_3.8.1.v20120830-144521.jar" sourcepath="C:/Users/Tobias Wolf/Desktop/eclipse (eigenconfig)/plugins/org.eclipse.osgi_3.8.1.v20120830-144521.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Tobias Wolf/Desktop/eclipse (eigenconfig)/plugins/org.eclipse.core.commands_3.6.1.v20120814-150512.jar" sourcepath="C:/Users/Tobias Wolf/Desktop/eclipse (eigenconfig)/plugins/org.eclipse.core.commands_3.6.1.v20120814-150512.jar"/>
@@ -16,5 +17,7 @@
 	<classpathentry kind="lib" path="C:/Users/Tobias Wolf/Desktop/eclipse (eigenconfig)/plugins/org.eclipse.ui.forms_3.5.200.v20120705-114351.jar" sourcepath="C:/Users/Tobias Wolf/Desktop/eclipse (eigenconfig)/plugins/org.eclipse.ui.forms_3.5.200.v20120705-114351.jar"/>
 	<classpathentry kind="lib" path="libs/JNativeHook.jar"/>
 	<classpathentry kind="lib" path="libs/WebTranslator-bin-0.2a.jar"/>
+	<classpathentry kind="lib" path="libs/webparser-jsoup-1.7.2.jar" sourcepath="libs/webparser-jsoup-1.7.2-sources.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

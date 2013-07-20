@@ -6,6 +6,10 @@ import java.awt.datatransfer.Transferable;
 
 import javax.swing.JOptionPane;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.jnativehook.GlobalScreen;
@@ -14,7 +18,8 @@ import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
 import translate.EasyTranslator;
-import translate.TranslateKeyListener;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.FillLayout;
 
 
 public class MainGui2 {
@@ -115,8 +120,26 @@ public class MainGui2 {
 	 */
 	protected void createContents() {
 		shlEasyTranslator = new Shell();
-		shlEasyTranslator.setSize(233, 38);
+		shlEasyTranslator.setSize(326, 205);
 		shlEasyTranslator.setText("Easy Translator");
+		shlEasyTranslator.setLayout(new FillLayout(SWT.HORIZONTAL));
+		final Browser b = new Browser(shlEasyTranslator, SWT.NONE);
+		b.setUrl("http://www.dict.cc/?s=" + "Hallo");
+		b.addProgressListener(new ProgressListener() {
+			
+			@Override
+			public void completed(ProgressEvent arg0) {
+				// TODO Auto-generated method stub
+				System.out.println("Text = "  + b.getText());
+			}
+			
+			@Override
+			public void changed(ProgressEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		
 
 	}
 	/**
