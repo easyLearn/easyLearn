@@ -33,7 +33,7 @@ public class MainGui2 {
 	private static Robot robot;
 
 	/**
-	 * Launch the application.
+	 * Launch the application..
 	 * @param args
 	 */
 	public static void main(String[] args) {
