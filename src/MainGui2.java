@@ -3,6 +3,7 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 
@@ -10,6 +11,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.ProgressEvent;
 import org.eclipse.swt.browser.ProgressListener;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.jnativehook.GlobalScreen;
@@ -17,9 +19,12 @@ import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
-import translate.EasyTranslator;
+import translate.translators.DictCCTranslator;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 
 
 public class MainGui2 {
@@ -84,15 +89,23 @@ public class MainGui2 {
 			
 			@Override
 			public void nativeKeyPressed(NativeKeyEvent arg0) {
-				System.out.println("Key = " + arg0.getKeyCode());
 				switch(arg0.getKeyCode()) {
 				case  NativeKeyEvent.VK_F8 : {
 					try {
+						System.out.println("KeyStroke");
 						copyMarkedText();
 						String text = getClipboardData();
+						System.out.println("Text = " + text);
 						if(text != null) {
-							String translation = EasyTranslator.translate(text);
-							if(translation != null) {
+							System.out.println("Anfang");
+							List<String> translations = new DictCCTranslator().translateSingleWord(text);
+							System.out.println("Ende");
+							if(translations != null) {
+								String translation = "";
+								for(String s : translations) {
+									translation += s + "\n";
+								}
+								System.out.println("Anzeigen ");
 								JOptionPane.showMessageDialog(null, translation, "Übersetzung", 1);
 								
 							}
@@ -100,6 +113,7 @@ public class MainGui2 {
 						robot.keyPress(27); // esc
 						robot.keyRelease(27);
 					} catch (Exception e) {
+						e.printStackTrace();
 					}
 				}
 			}
@@ -123,24 +137,9 @@ public class MainGui2 {
 		shlEasyTranslator.setSize(326, 205);
 		shlEasyTranslator.setText("Easy Translator");
 		shlEasyTranslator.setLayout(new FillLayout(SWT.HORIZONTAL));
-		final Browser b = new Browser(shlEasyTranslator, SWT.NONE);
-		b.setUrl("http://www.dict.cc/?s=" + "Hallo");
-		b.addProgressListener(new ProgressListener() {
-			
-			@Override
-			public void completed(ProgressEvent arg0) {
-				// TODO Auto-generated method stub
-				System.out.println("Text = "  + b.getText());
-			}
-			
-			@Override
-			public void changed(ProgressEvent arg0) {
-				// TODO Auto-generated method stub
-				
-			}
-		});
 		
-
+		Browser browser = new Browser(shlEasyTranslator, SWT.NONE);
+		browser.setUrl("www.google.de");
 	}
 	/**
 	 * Strg + C

@@ -22,10 +22,10 @@ public abstract class AbstractTranslator {
 	
 	/**
 	 * Which translation possiblities / which translations languages should be supported.
-	 * Current: ENGLISH, GERMAN, FRENCH
+	 * Current: AUTO (automatische Erkennung), ENGLISH, GERMAN, FRENCH
 	 */
 	public enum TranslationLocale{
-		ENGLISH, GERMAN, FRENCH;
+		AUTO, ENGLISH, GERMAN, FRENCH;
 	}
 
 	/**
@@ -44,7 +44,8 @@ public abstract class AbstractTranslator {
 	 * @return list of possible translations (usually it is only one translation)
 	 */
 	public abstract List<String> translateText(String text);
-
+	
+	
 	/**
 	 * @return From which language will be translated.
 	 */
