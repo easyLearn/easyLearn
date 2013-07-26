@@ -4,7 +4,6 @@
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="libs/JNativeHook.jar"/>
-	<classpathentry kind="lib" path="libs/WebTranslator-bin-0.2a.jar"/>
 	<classpathentry kind="lib" path="libs/webparser-jsoup-1.7.2.jar" sourcepath="libs/webparser-jsoup-1.7.2-sources.jar"/>
 	<classpathentry kind="lib" path="libs/simmetrics_jar_v1_6_2_d07_02_07.jar"/>
 	<classpathentry kind="lib" path="libs/com.ibm.icu_4.4.2.v20110823.jar"/>
