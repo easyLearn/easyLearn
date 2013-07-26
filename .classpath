@@ -20,6 +20,5 @@
 	<classpathentry kind="lib" path="libs/org.eclipse.ui.workbench_3.103.1.v20120906-120042.jar"/>
 	<classpathentry kind="lib" path="libs/swt.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/HtmlUnit"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
