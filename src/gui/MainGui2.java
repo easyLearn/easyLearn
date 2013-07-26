@@ -1,4 +1,7 @@
 package gui;
+
+import gui.translator.TranslatorBuilder;
+
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -42,11 +45,8 @@ import org.eclipse.swt.widgets.Combo;
 public class MainGui2 {
 
 	protected Shell shell;
-	private Combo comboTranslator;
 	private static Robot robot;
-	private final static String TRANSLATOR_SEL_GOOGLE = "Google Translator";
-	private final static String TRANSLATOR_SEL_DICTCC = "Dict.cc Translator";
-	private String selectionTranslator = "";
+	private TranslatorBuilder translatorBuilder;
 
 	/**
 	 * Launch the application.
@@ -115,10 +115,10 @@ public class MainGui2 {
 						if(text != null) {
 							
 							AbstractTranslator translator = null;
-							System.out.println("Selection = " + selectionTranslator);
-							switch (selectionTranslator) {
-								case TRANSLATOR_SEL_GOOGLE : translator = new GoogleTranslator(); break;
-								case TRANSLATOR_SEL_DICTCC : translator = new DictCCTranslator(); break;
+//							System.out.println("Selection = " + selectionTranslator);
+							switch (translatorBuilder.getTranslatorSelection()) {
+								case TranslatorBuilder.TRANSLATOR_SEL_GOOGLE : translator = new GoogleTranslator(); break;
+								case TranslatorBuilder.TRANSLATOR_SEL_DICTCC : translator = new DictCCTranslator(); break;
 								default : ;
 							}
 							if(translator == null) return;
@@ -128,8 +128,12 @@ public class MainGui2 {
 								for(String s : translations) {
 									translation += s + "\n";
 								}
-								JOptionPane.showMessageDialog(null, translation, "Übersetzung", 1);
-								
+								final String t = translation;
+								Runnable setTranslation = new Runnable(){ public void run(){ 
+									shell.forceActive(); /* Fenster geht in Vordergrund */ 
+									translatorBuilder.setTranslationResult(t);
+								} };
+							    Display.getDefault().asyncExec(setTranslation);
 							}
 						}
 						robot.keyPress(27); // esc
@@ -166,30 +170,22 @@ public class MainGui2 {
 		TabItem tabTranslator = new TabItem(tabFolder, SWT.NONE);
 		tabTranslator.setText("Translator");
 		
-		Composite translatorArea = new Composite(tabFolder, SWT.NONE);
-		tabTranslator.setControl(translatorArea);
-		translatorArea.setLayout(new FormLayout());
+		/* Translator Bereich */
 		
-		Composite translatorSelectorArea = new Composite(translatorArea, SWT.NONE);
-		translatorSelectorArea.setLayout(new RowLayout(SWT.HORIZONTAL));
-		translatorSelectorArea.setLayoutData(new FormData());
+		translatorBuilder = new TranslatorBuilder();
+		Composite translatorArea = translatorBuilder.build(tabFolder);
+		tabTranslator.setControl(translatorArea);	
 		
-		Label labelTranslatorSelector = new Label(translatorSelectorArea, SWT.NONE);
-		labelTranslatorSelector.setText("Auswahl \u00DCbersetzer: ");
-		
-		comboTranslator = new Combo(translatorSelectorArea, SWT.NONE);
-		comboTranslator.add(TRANSLATOR_SEL_GOOGLE);
-		comboTranslator.add(TRANSLATOR_SEL_DICTCC);
-		comboTranslator.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent arg0) {
-				selectionTranslator = (String) comboTranslator.getItem(comboTranslator.getSelectionIndex());
-			}
-		});
+		/* Content Extractor Bereich */
 		
 		TabItem tbtmContentExtractor = new TabItem(tabFolder, SWT.NONE);
 		tbtmContentExtractor.setText("Content Extractor");
+		
+		Composite composite = new Composite(tabFolder, SWT.NONE);
+		tbtmContentExtractor.setControl(composite);
+		composite.setLayout(new FillLayout(SWT.HORIZONTAL));
 	}
+	
 	/**
 	 * Simuliert Strg + C
 	 */
@@ -208,19 +204,19 @@ public class MainGui2 {
 	
 	private String getClipboardData() throws Exception{
 		Clipboard systemClipboard;
-	    systemClipboard = Toolkit.getDefaultToolkit().getSystemClipboard(); 
-	    Transferable transferData = systemClipboard.getContents( null ); 
-	    for(DataFlavor dataFlavor : transferData.getTransferDataFlavors()){ 
-	      Object content = transferData.getTransferData( dataFlavor ); 
-	      if ( content instanceof String ) 
-	      { 
-	    	String s = (String) content;
-//	        System.out.println( s );
-	        if(s.length() < 30 ) return (String) content;
-	      }
-	    }
-	  
-	    return null;
+	    systemClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+	    System.out.println("Clipboard = " + systemClipboard.getData(DataFlavor.stringFlavor));
+	    return (String) systemClipboard.getData(DataFlavor.stringFlavor);
+//	    for(DataFlavor dataFlavor : transferData.getTransferDataFlavors()){ 
+//	      Object content = transferData.getTransferData( dataFlavor ); 
+//	      if ( content instanceof String ) 
+//	      { 
+//	    	String s = (String) content;
+////	        System.out.println( s );
+//	        if(s.length() < 30 ) return (String) content;
+//	      }
+//	    }
+//	  
 	}
 
 }
