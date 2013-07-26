@@ -5,6 +5,7 @@ import java.util.List;
 /**
  * This abstract class provides a simple interface for Translators. Implementations can make use of Webservices or
  * other local translation services.
+ * TODO: new datatype Translation (for return), because translations can be quite different in representation.
  * @author Tobias Wolf
  *
  */

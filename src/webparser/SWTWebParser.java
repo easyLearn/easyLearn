@@ -22,60 +22,80 @@ import org.jsoup.nodes.Document;
 public class SWTWebParser extends AbstractWebParser{
 
 	private List<Document> contents = new ArrayList<Document>();
-	private int readIndex = 0;
 	private Shell shell;
 	private Browser browser;
+	private Display display;
 	private boolean disposeBrowser = true; // Debugvariable (sollte wieder raus): am Ende wieder Browser schlieﬂen ?
 	private boolean finished = false; // Variable, die anzeigt wann die Ergebnisse vorliegen
 	
 	@Override
-	public List<Document> readUrls(final String... weburls) {
+	public Document readUrl(String weburl) {
 		Thread thread = Thread.currentThread();
-		if(thread.getName().equals("main")) return read(weburls);
+		if(thread.getName().equals("main")) return read(weburl);
 		
 		  /* Fall nicht im Main Thread -> mit diesem synchronisieren*/
-	      Runnable r = new Runnable(){ public void run(){ read(weburls); } }; // READ WEBURLS
-	      Display.getDefault().asyncExec(r);
-	      while(!finished) {
+	      asyncRead(weburl);
+	      try {Thread.sleep(1500);} catch (InterruptedException e) {}
 	    	  
-	    	  try {Thread.sleep(100);} catch (InterruptedException e) {}
-	    	  
-	      }
-	      return contents;
+	      Display.getDefault().asyncExec(new Runnable(){ public void run(){ shell.dispose(); } });
+	      return contents.get(contents.size() - 1);
+	}
+	
+	@Override
+	public List<Document> readUrls(final String... weburls) {
+		return null;
 	}
 	        
+	long time;
+	
+	private void asyncRead(final String url) {
+		Runnable r = new Runnable(){ public void run(){ read(url); } }; // READ WEBURLS
+	    Display.getDefault().asyncExec(r);
+	}
 	
 	/**
-	 * Oeffnet kurzzeitig einen Webbrowser, laedt und liest die vorhandenen Seiten aus.
+	 * Oeffnet  kurzzeitig einen Webbrowser, laedt und liest die vorhandenen Seiten aus.
 	 * Eigentlich geht es einfacher, allerdings gibt es bisher keine andere Loesung um z.B. die Seite
 	 * dict.cc auszulesen.
 	 */
-	public List<Document> read(final String... weburls) {
-		if(weburls.length <= 0) return new ArrayList<Document>();
+	public Document read(final String url) {
+		time = System.currentTimeMillis(); // Time
+		initBrowser();
+		
+		setUrl(url);
 		finished = false;
-		Display display = Display.getDefault();
-		shell = new Shell();
-		shell.setSize(600, 300);
-		shell.setLayout(new FillLayout(SWT.HORIZONTAL));
-		browser = new Browser(shell, SWT.NONE);
-		setUrl(weburls[0]);
-		readIndex = 0;
+		
 		browser.addProgressListener(new ProgressListener() {
 			
 			@Override
 			public void completed(ProgressEvent arg0) {
+				System.out.println("Completed 1 time: " + (System.currentTimeMillis() - time));
 				contents.add(Jsoup.parse(browser.getText()));
-				if(readIndex < weburls.length - 1 ) SWTWebParser.this.setUrl(weburls[++readIndex]);
-				else {
-					finished = true;
-					if(disposeBrowser) shell.dispose();
-					
-				}
 			}
 			
 			@Override
-			public void changed(ProgressEvent arg0) {}
+			public void changed(ProgressEvent arg0) {
+				// Mittelalter
+				contents.add(Jsoup.parse(browser.getText()));
+				System.out.println("Completed 2 time: " + (System.currentTimeMillis() - time) + " Current = " + arg0.current); 
+				
+			}
 		});
+		
+		readAndDispatch();
+
+		return contents.get(contents.size() -1);
+	}
+	
+	private void initBrowser() {
+		display = Display.getDefault();
+		shell = new Shell();
+		shell.setSize(600, 300);
+		shell.setLayout(new FillLayout(SWT.HORIZONTAL));
+		browser = new Browser(shell, SWT.NONE);
+	}
+	
+	private void readAndDispatch() {
 		shell.open();
 		shell.layout();
 		while (!shell.isDisposed()) {
@@ -83,16 +103,13 @@ public class SWTWebParser extends AbstractWebParser{
 				display.sleep();
 			}
 		}
-
-		return contents;
 	}
 
 	private void setUrl(String url) {
 		
-			String newUrl = URLEncoder.encode(url);
-			System.out.println(url);
-			browser.setUrl(url);
-		
-
+		String newUrl = URLEncoder.encode(url);
+		browser.setUrl(url);
 	}
+
+	
 }

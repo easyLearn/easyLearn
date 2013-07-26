@@ -1,3 +1,4 @@
+package gui;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -11,6 +12,9 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.ProgressEvent;
 import org.eclipse.swt.browser.ProgressListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -19,18 +23,30 @@ import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
+import translate.AbstractTranslator;
 import translate.translators.DictCCTranslator;
+import translate.translators.GoogleTranslator;
+
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.widgets.Combo;
 
 
 public class MainGui2 {
 
-	protected Shell shlEasyTranslator;
+	protected Shell shell;
+	private Combo comboTranslator;
 	private static Robot robot;
+	private final static String TRANSLATOR_SEL_GOOGLE = "Google Translator";
+	private final static String TRANSLATOR_SEL_DICTCC = "Dict.cc Translator";
+	private String selectionTranslator = "";
 
 	/**
 	 * Launch the application.
@@ -55,9 +71,9 @@ public class MainGui2 {
 		
 		Display display = Display.getDefault();
 		createContents();
-		shlEasyTranslator.open();
-		shlEasyTranslator.layout();
-		while (!shlEasyTranslator.isDisposed()) {
+		shell.open();
+		shell.layout();
+		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
@@ -66,6 +82,7 @@ public class MainGui2 {
 	
 	private void registerListener() {
 		try {
+			System.out.println("Register Listener");
             GlobalScreen.registerNativeHook();
 	    }
 	    catch (NativeHookException ex) {
@@ -92,20 +109,25 @@ public class MainGui2 {
 				switch(arg0.getKeyCode()) {
 				case  NativeKeyEvent.VK_F8 : {
 					try {
-						System.out.println("KeyStroke");
 						copyMarkedText();
 						String text = getClipboardData();
-						System.out.println("Text = " + text);
+						
 						if(text != null) {
-							System.out.println("Anfang");
-							List<String> translations = new DictCCTranslator().translateSingleWord(text);
-							System.out.println("Ende");
+							
+							AbstractTranslator translator = null;
+							System.out.println("Selection = " + selectionTranslator);
+							switch (selectionTranslator) {
+								case TRANSLATOR_SEL_GOOGLE : translator = new GoogleTranslator(); break;
+								case TRANSLATOR_SEL_DICTCC : translator = new DictCCTranslator(); break;
+								default : ;
+							}
+							if(translator == null) return;
+							List<String> translations = translator.translateSingleWord(text);
 							if(translations != null) {
 								String translation = "";
 								for(String s : translations) {
 									translation += s + "\n";
 								}
-								System.out.println("Anzeigen ");
 								JOptionPane.showMessageDialog(null, translation, "Übersetzung", 1);
 								
 							}
@@ -131,18 +153,45 @@ public class MainGui2 {
 	
 	/**
 	 * Create contents of the window.
+	 * TODO: GUI-Elemente in einzelne create Methoden auslagern. Evtl. Builder einsetzen.
 	 */
 	protected void createContents() {
-		shlEasyTranslator = new Shell();
-		shlEasyTranslator.setSize(326, 205);
-		shlEasyTranslator.setText("Easy Translator");
-		shlEasyTranslator.setLayout(new FillLayout(SWT.HORIZONTAL));
+		shell = new Shell();
+		shell.setSize(361, 265);
+		shell.setText("Easy Translator");
+		shell.setLayout(new FillLayout(SWT.HORIZONTAL));
 		
-		Browser browser = new Browser(shlEasyTranslator, SWT.NONE);
-		browser.setUrl("www.google.de");
+		TabFolder tabFolder = new TabFolder(shell, SWT.NONE);
+		
+		TabItem tabTranslator = new TabItem(tabFolder, SWT.NONE);
+		tabTranslator.setText("Translator");
+		
+		Composite translatorArea = new Composite(tabFolder, SWT.NONE);
+		tabTranslator.setControl(translatorArea);
+		translatorArea.setLayout(new FormLayout());
+		
+		Composite translatorSelectorArea = new Composite(translatorArea, SWT.NONE);
+		translatorSelectorArea.setLayout(new RowLayout(SWT.HORIZONTAL));
+		translatorSelectorArea.setLayoutData(new FormData());
+		
+		Label labelTranslatorSelector = new Label(translatorSelectorArea, SWT.NONE);
+		labelTranslatorSelector.setText("Auswahl \u00DCbersetzer: ");
+		
+		comboTranslator = new Combo(translatorSelectorArea, SWT.NONE);
+		comboTranslator.add(TRANSLATOR_SEL_GOOGLE);
+		comboTranslator.add(TRANSLATOR_SEL_DICTCC);
+		comboTranslator.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				selectionTranslator = (String) comboTranslator.getItem(comboTranslator.getSelectionIndex());
+			}
+		});
+		
+		TabItem tbtmContentExtractor = new TabItem(tabFolder, SWT.NONE);
+		tbtmContentExtractor.setText("Content Extractor");
 	}
 	/**
-	 * Strg + C
+	 * Simuliert Strg + C
 	 */
 	private void copyMarkedText() {
 		robot.keyPress(17); // 17 und 67
@@ -166,7 +215,7 @@ public class MainGui2 {
 	      if ( content instanceof String ) 
 	      { 
 	    	String s = (String) content;
-	        System.out.println( s );
+//	        System.out.println( s );
 	        if(s.length() < 30 ) return (String) content;
 	      }
 	    }

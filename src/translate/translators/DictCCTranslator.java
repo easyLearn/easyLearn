@@ -12,6 +12,7 @@ import org.jsoup.nodes.Element;
 import translate.AbstractTranslator;
 import uk.ac.shef.wit.simmetrics.similaritymetrics.JaroWinkler;
 import webparser.AbstractWebParser;
+import webparser.JsoupWebParser;
 import webparser.SWTWebParser;
 
 /**
@@ -25,7 +26,7 @@ public class DictCCTranslator extends AbstractTranslator{
 	private String website = ".dict.cc/?s="; // Website des Uebersetzerservices
 	
 	public DictCCTranslator() {
-		webparser = new SWTWebParser();
+		webparser = new JsoupWebParser();
 	}
 	
 	/**
@@ -70,8 +71,7 @@ public class DictCCTranslator extends AbstractTranslator{
 					ausgangswort += wordPart.text() + " ";
 				}
 				ausgangswort = ausgangswort.trim(); // rechtes leerzeichen entfernen
-//				System.out.println("W1: " + ausgangswort.toLowerCase() + " W2: " + word.toLowerCase() + " Similarity: " + 
-//						new JaroWinkler().getSimilarity(ausgangswort.toLowerCase(), word.toLowerCase()));
+
 				/* Abfrage wird benoetigt damit nur wirklich genau das Ausganswort 
 				 * beruecksichtigt wird, und nicht noch zusammengesetzte Woerter */
 				
