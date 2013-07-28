@@ -16,40 +16,64 @@ import org.jsoup.nodes.Document;
 
 /**
  * Parser der den SWT Browser oeffnet. Sollte im Normalfall nicht verwendet werden (wenn Seite ueber JsoupParser aufrufbar ist).
+ * Wenn eine URL gelesen wird, dann beginnt eine Zeitmessung. Wenn die Zeit ueber den Timeout liegt, wird nicht weiter auf ein Ergebnis
+ * des Browser gewartet und dieses sofort zurueckgegeben (siehe readUntilNextProgress und readUrl)
  * @author Tobias Wolf
  *
  */
 public class SWTWebParser extends AbstractWebParser{
 
-	private List<Document> contents = new ArrayList<Document>();
+	private Document content;
 	private Shell shell;
 	private Browser browser;
 	private Display display;
-	private boolean disposeBrowser = true; // Debugvariable (sollte wieder raus): am Ende wieder Browser schließen ?
-	private boolean finished = false; // Variable, die anzeigt wann die Ergebnisse vorliegen
+	private boolean completed = false; // Laden der Seite vollstaendig (muss trotzdem nicht heissen, dass sie komplett geladen wurde)
+	private boolean progress = false; // ein Fortschritt wurde gemacht beim Laden
+	private long timeout = 10000; // 10s default
+	private long timeBegin;
+	
+	public SWTWebParser(long timeout) {
+		this.timeout = timeout;
+	}
 	
 	@Override
 	public Document readUrl(String weburl) {
+		timeBegin = System.currentTimeMillis();
 		Thread thread = Thread.currentThread();
 		if(thread.getName().equals("main")) return read(weburl);
 		
-		  /* Fall nicht im Main Thread -> mit diesem synchronisieren*/
+		  /* Falls nicht im Main Thread -> mit diesem synchronisieren*/
 	      asyncRead(weburl);
-	      try {Thread.sleep(1500);} catch (InterruptedException e) {}
-	    	  
-	      Display.getDefault().asyncExec(new Runnable(){ public void run(){ shell.dispose(); } });
-	      return contents.get(contents.size() - 1);
+	      
+	      waitForCompletion(); // warten bis URL fertig geladen
+	      
+	      return content; // letzte zurueckgeben
 	}
 	
 	@Override
 	public List<Document> readUrls(final String... weburls) {
 		return null;
 	}
+	
+	public Document readUntilNextProgress() {
+		while(!progress && System.currentTimeMillis() - timeBegin < timeout) {
+			try { Thread.sleep(100); } catch (InterruptedException e) {}
+		}
+		completed = false;
+		progress = false;
+		return content;
+	}
 	        
-	long time;
+	private void waitForCompletion() {
+		while(!completed && System.currentTimeMillis() - timeBegin < timeout) {
+			try { Thread.sleep(100); } catch (InterruptedException e) {}
+		}
+		completed = false;
+		progress = false;
+	}
 	
 	private void asyncRead(final String url) {
-		Runnable r = new Runnable(){ public void run(){ read(url); } }; // READ WEBURLS
+		Runnable r = new Runnable(){ public void run(){ read(url); } };
 	    Display.getDefault().asyncExec(r);
 	}
 	
@@ -59,32 +83,29 @@ public class SWTWebParser extends AbstractWebParser{
 	 * dict.cc auszulesen.
 	 */
 	public Document read(final String url) {
-		time = System.currentTimeMillis(); // Time
 		initBrowser();
 		
 		setUrl(url);
-		finished = false;
 		
 		browser.addProgressListener(new ProgressListener() {
 			
 			@Override
 			public void completed(ProgressEvent arg0) {
-				System.out.println("Completed 1 time: " + (System.currentTimeMillis() - time));
-				contents.add(Jsoup.parse(browser.getText()));
+				content = Jsoup.parse(browser.getText());
+				completed = true;
+				progress = true;
 			}
 			
 			@Override
 			public void changed(ProgressEvent arg0) {
-				// Mittelalter
-				contents.add(Jsoup.parse(browser.getText()));
-				System.out.println("Completed 2 time: " + (System.currentTimeMillis() - time) + " Current = " + arg0.current); 
-				
+				content = Jsoup.parse(browser.getText());				
+				progress = true;
 			}
 		});
 		
 		readAndDispatch();
 
-		return contents.get(contents.size() -1);
+		return content;
 	}
 	
 	private void initBrowser() {
@@ -104,11 +125,13 @@ public class SWTWebParser extends AbstractWebParser{
 			}
 		}
 	}
-
+	
 	private void setUrl(String url) {
-		
-		String newUrl = URLEncoder.encode(url);
 		browser.setUrl(url);
+	}
+	
+	public void dispose() {
+		Display.getDefault().asyncExec(new Runnable(){ public void run(){ shell.dispose(); } });
 	}
 
 	

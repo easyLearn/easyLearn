@@ -82,8 +82,8 @@ public class MainGui2 {
 	
 	private void registerListener() {
 		try {
-			System.out.println("Register Listener");
             GlobalScreen.registerNativeHook();
+            System.out.println("Register Native Hook");
 	    }
 	    catch (NativeHookException ex) {
 	            System.err.println("There was a problem registering the native hook.");
@@ -97,12 +97,11 @@ public class MainGui2 {
 			
 			@Override
 			public void nativeKeyTyped(NativeKeyEvent arg0) {
-				
-				
 			}
 			
 			@Override
-			public void nativeKeyReleased(NativeKeyEvent arg0) {}
+			public void nativeKeyReleased(NativeKeyEvent arg0) {
+			}
 			
 			@Override
 			public void nativeKeyPressed(NativeKeyEvent arg0) {
@@ -207,16 +206,6 @@ public class MainGui2 {
 	    systemClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 	    System.out.println("Clipboard = " + systemClipboard.getData(DataFlavor.stringFlavor));
 	    return (String) systemClipboard.getData(DataFlavor.stringFlavor);
-//	    for(DataFlavor dataFlavor : transferData.getTransferDataFlavors()){ 
-//	      Object content = transferData.getTransferData( dataFlavor ); 
-//	      if ( content instanceof String ) 
-//	      { 
-//	    	String s = (String) content;
-////	        System.out.println( s );
-//	        if(s.length() < 30 ) return (String) content;
-//	      }
-//	    }
-//	  
 	}
 
 }

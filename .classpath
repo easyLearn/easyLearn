@@ -3,7 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="libs/JNativeHook.jar"/>
 	<classpathentry kind="lib" path="libs/webparser-jsoup-1.7.2.jar" sourcepath="libs/webparser-jsoup-1.7.2-sources.jar"/>
 	<classpathentry kind="lib" path="libs/simmetrics_jar_v1_6_2_d07_02_07.jar"/>
 	<classpathentry kind="lib" path="libs/com.ibm.icu_4.4.2.v20110823.jar"/>
@@ -18,6 +17,7 @@
 	<classpathentry kind="lib" path="libs/org.eclipse.ui.forms_3.5.200.v20120705-114351.jar"/>
 	<classpathentry kind="lib" path="libs/org.eclipse.ui.workbench_3.103.1.v20120906-120042.jar"/>
 	<classpathentry kind="lib" path="libs/swt.jar"/>
+	<classpathentry kind="lib" path="libs/JNativeHook.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

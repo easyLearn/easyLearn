@@ -50,6 +50,8 @@ public class DictCCTranslator extends AbstractTranslator{
 		
 		List<String> result = new ArrayList<String>();
 		
+		if(contents == null)  return result;
+		
 		/* Seite nach Uebersetzungen durchsuchen */
 		
 		for(Document doc : contents) {
