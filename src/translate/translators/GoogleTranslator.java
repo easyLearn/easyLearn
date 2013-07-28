@@ -37,15 +37,14 @@ public class GoogleTranslator extends AbstractTranslator{
 		String from = mapTranslationLocale(From);
 		String to = mapTranslationLocale(To);
 		String url = p1_website + p2_site + from + "/" + to + "/" + text; // URL fuer das zu uebersetzende Wort
+		System.out.println("Google Url = " + url);
 		translation = getTranslation(parser.readUrl(url));
 		int tries = 0;
-		System.out.println("Translation = " + translation);
+		
 		while ("".equals(translation) && ++tries <= 10) // nicht mehr als 10 Versuche
 			translation = getTranslation(parser.readUntilNextProgress());
 		
-		System.out.println("Tries = " + tries);
-		
-		parser.dispose();
+		parser.dispose(); // sollte nach jedem readUrl gemacht werden, ansonsten bleibt Browser auf
 		
 		if(translation.length() > 0) result.add(translation);
 		

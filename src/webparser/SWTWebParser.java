@@ -1,7 +1,5 @@
 package webparser;
 
-import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -15,6 +13,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 /**
+ * Hinweis: SWTWebParser sollte in einem neuen Thread verwendet werden.
+ * TODO: evtl. Threadaufruf irgendwie in Klasse kapseln.
  * Parser der den SWT Browser oeffnet. Sollte im Normalfall nicht verwendet werden (wenn Seite ueber JsoupParser aufrufbar ist).
  * Wenn eine URL gelesen wird, dann beginnt eine Zeitmessung. Wenn die Zeit ueber den Timeout liegt, wird nicht weiter auf ein Ergebnis
  * des Browser gewartet und dieses sofort zurueckgegeben (siehe readUntilNextProgress und readUrl)
@@ -37,19 +37,18 @@ public class SWTWebParser extends AbstractWebParser{
 	}
 	
 	@Override
-	public Document readUrl(String weburl) {
+	public Document readUrl(final String weburl) {
 		timeBegin = System.currentTimeMillis();
-		Thread thread = Thread.currentThread();
-		if(thread.getName().equals("main")) return read(weburl);
-		
-		  /* Falls nicht im Main Thread -> mit diesem synchronisieren*/
-	      asyncRead(weburl);
+
+		asyncRead(weburl);
+		waitForCompletion(); // warten bis URL fertig geladen
 	      
-	      waitForCompletion(); // warten bis URL fertig geladen
-	      
-	      return content; // letzte zurueckgeben
+	    return content; // letzte zurueckgeben
 	}
 	
+	/**
+	 * notSupported: returns null
+	 */
 	@Override
 	public List<Document> readUrls(final String... weburls) {
 		return null;
@@ -108,6 +107,9 @@ public class SWTWebParser extends AbstractWebParser{
 		return content;
 	}
 	
+	/**
+	 * Initialisiert einen SWT Browser in einer Shell.
+	 */
 	private void initBrowser() {
 		display = Display.getDefault();
 		shell = new Shell();

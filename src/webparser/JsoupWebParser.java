@@ -19,7 +19,7 @@ public class JsoupWebParser extends AbstractWebParser {
 				System.out.println("Weburl = " + weburl);
 				Document doc = Jsoup.connect(weburl)
 						.userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.120 Safari/535.2").timeout(5000)
-					      .post();
+					      .get();
 				
 //				System.out.println(doc.html()); // Mittelalter
 				result.add(doc);
