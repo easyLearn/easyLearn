@@ -85,8 +85,7 @@ public final class TranslatorBuilder {
 			
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
-				// evtl. Threadverwendung irgendwie in SWT Parser kapseln, da dies haupsaechlich dort auftritt.
-				new Thread() { public void run() { onTranslate(); }	}.start();
+				onTranslate();
 			}
 		});
 		
@@ -142,42 +141,45 @@ public final class TranslatorBuilder {
 	 * Zwischenablage kopiert. Dann wird dieser Text dem Uebersetzer uebergeben. Dieser uebersetzt dann den Text.
 	 */
 	private void onTranslate() {
-		try {
-			copyMarkedText();
-			String text = getClipboardData();
-			
-			if(text != null) {
-				AbstractTranslator translator = null;
-
-				switch (translatorSelection) {
-					case TranslatorBuilder.TRANSLATOR_SEL_GOOGLE : translator = new GoogleTranslator(); break;
-					case TranslatorBuilder.TRANSLATOR_SEL_DICTCC : translator = new DictCCTranslator(); break;
-					default : ;
-				}
-				if(translator == null) return;
-				System.out.println("ComboFrom = " + comboFrom.getSelectedItem());
-				translator.setFrom(comboFrom.getSelectedItem());
-				translator.setTo(comboTo.getSelectedItem());
-				List<String> translations = translator.translateSingleWord(text);
-				if(translations != null) {
-					String translation = "";
-					for(String s : translations) {
-						translation += s + "\n";
+		new Thread() {
+			public void run() {
+				try {
+					copyMarkedText();
+					String text = getClipboardData();
+					
+					if(text != null) {
+						AbstractTranslator translator = null;
+		
+						switch (translatorSelection) {
+							case TranslatorBuilder.TRANSLATOR_SEL_GOOGLE : translator = new GoogleTranslator(); break;
+							case TranslatorBuilder.TRANSLATOR_SEL_DICTCC : translator = new DictCCTranslator(); break;
+							default : ;
+						}
+						if(translator == null) return;
+						translator.setFrom(comboFrom.getSelectedItem());
+						translator.setTo(comboTo.getSelectedItem());
+						List<String> translations = translator.translateSingleWord(text);
+						if(translations != null) {
+							String translation = "";
+							for(String s : translations) {
+								translation += s + "\n";
+							}
+							final String t = translation;
+							Runnable setTranslation = new Runnable(){ public void run(){ 
+								shell.forceActive(); /* Fenster geht in Vordergrund */ 
+								setTranslationResult(t);
+							} };
+						    Display.getDefault().asyncExec(setTranslation);
+						}
 					}
-					final String t = translation;
-					Runnable setTranslation = new Runnable(){ public void run(){ 
-						shell.forceActive(); /* Fenster geht in Vordergrund */ 
-						setTranslationResult(t);
-					} };
-				    Display.getDefault().asyncExec(setTranslation);
+					if(robot == null) return;
+					robot.keyPress(27); // escape druecken, um Markierungsbugs zu vermeiden
+					robot.keyRelease(27);
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
-			if(robot == null) return;
-			robot.keyPress(27); // escape druecken, um Markierungsbugs zu vermeiden
-			robot.keyRelease(27);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		}.start();
 	}
 	
 	/**
@@ -200,7 +202,6 @@ public final class TranslatorBuilder {
 	private String getClipboardData() throws Exception{
 		Clipboard systemClipboard;
 	    systemClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-	    System.out.println("Clipboard = " + systemClipboard.getData(DataFlavor.stringFlavor));
 	    return (String) systemClipboard.getData(DataFlavor.stringFlavor);
 	}
 	

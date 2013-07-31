@@ -16,8 +16,6 @@ public class GoogleTranslator extends AbstractTranslator{
 	private final SWTWebParser parser;
 	private final String p1_website = "https://translate.google.de/";
 	private final String p2_site = "?hl=de&tab=wT#";
-	private final String p3_from = "auto/"; // automatische Erkennung
-	private final String p4_to = "en/";
 	
 	public GoogleTranslator() {
 		parser = new SWTWebParser(5000); // Timeout von 5 s
@@ -39,8 +37,8 @@ public class GoogleTranslator extends AbstractTranslator{
 		String url = p1_website + p2_site + from + "/" + to + "/" + text; // URL fuer das zu uebersetzende Wort
 		System.out.println("Google Url = " + url);
 		translation = getTranslation(parser.readUrl(url));
-		int tries = 0;
 		
+		int tries = 0;
 		while ("".equals(translation) && ++tries <= 10) // nicht mehr als 10 Versuche
 			translation = getTranslation(parser.readUntilNextProgress());
 		

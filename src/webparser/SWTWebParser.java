@@ -1,6 +1,7 @@
 package webparser;
 
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -31,6 +32,7 @@ public class SWTWebParser extends AbstractWebParser{
 	private boolean progress = false; // ein Fortschritt wurde gemacht beim Laden
 	private long timeout = 10000; // 10s default
 	private long timeBegin;
+	private String lastHtml = "";
 	
 	public SWTWebParser(long timeout) {
 		this.timeout = timeout;
@@ -39,11 +41,27 @@ public class SWTWebParser extends AbstractWebParser{
 	@Override
 	public Document readUrl(final String weburl) {
 		timeBegin = System.currentTimeMillis();
-
-		asyncRead(weburl);
+		
+		Display d = checkForMainGuiThread();
+		if(d == null ) { // wenn es noch kein Display gibt also keinen Gui Thread dann muss nicht mit diesem synchronisiert werden.
+			new Thread() {public void run() {	read(weburl); }}.start();
+		}
+		else {
+			asyncRead(weburl);		
+		}
+			
 		waitForCompletion(); // warten bis URL fertig geladen
 	      
 	    return content; // letzte zurueckgeben
+	}
+	
+	private Display checkForMainGuiThread() {
+		Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+		for(Thread t : threadSet) {
+			Display d = Display.findDisplay(t);
+			if(d != null && "main".equals(t.getName())) return d;
+		}
+		return null;
 	}
 	
 	/**
@@ -54,10 +72,16 @@ public class SWTWebParser extends AbstractWebParser{
 		return null;
 	}
 	
+	/**
+	 * Warten bis zum naechsten Fortschritt oder wenn Timeout erreicht wurde.
+	 * @return neuer Inhalt
+	 */
 	public Document readUntilNextProgress() {
 		while(!progress && System.currentTimeMillis() - timeBegin < timeout) {
 			try { Thread.sleep(100); } catch (InterruptedException e) {}
+			Display.getDefault().asyncExec(new Runnable(){ public void run(){ setProgress(browser.getText()); } });
 		}
+		
 		completed = false;
 		progress = false;
 		return content;
@@ -72,8 +96,20 @@ public class SWTWebParser extends AbstractWebParser{
 	}
 	
 	private void asyncRead(final String url) {
-		Runnable r = new Runnable(){ public void run(){ read(url); } };
-	    Display.getDefault().asyncExec(r);
+		Display.getDefault().asyncExec(new Runnable(){ public void run(){ read(url); } });
+	}
+	
+	/**
+	 * Falls sich der Inhalt der Seite geaendert hat wird dieser als neuer Inhalt gesetzt und der Fortschritt
+	 * ueber die Variable progress (true) vermerkt.
+	 * @param text
+	 */
+	private void setProgress(String text) {
+		if(!lastHtml.equals(text)) { // Inhalt hat sich geaendert ?
+			lastHtml = text;
+			content = Jsoup.parse(text);
+			progress = true;
+		}
 	}
 	
 	/**
@@ -83,22 +119,19 @@ public class SWTWebParser extends AbstractWebParser{
 	 */
 	public Document read(final String url) {
 		initBrowser();
-		
 		setUrl(url);
 		
 		browser.addProgressListener(new ProgressListener() {
 			
 			@Override
 			public void completed(ProgressEvent arg0) {
-				content = Jsoup.parse(browser.getText());
+				setProgress(browser.getText());
 				completed = true;
-				progress = true;
 			}
 			
 			@Override
 			public void changed(ProgressEvent arg0) {
-				content = Jsoup.parse(browser.getText());				
-				progress = true;
+				setProgress(browser.getText());
 			}
 		});
 		

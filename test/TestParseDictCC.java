@@ -1,4 +1,7 @@
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.List;
 
 
@@ -15,17 +18,36 @@ import translate.translators.DictCCTranslator;
  * @author Tobias Wolf
  *
  */
-public class TestParseDictCC {
+public class TestParseDictCC extends TranslatorTestUtility{
 	
 	@Test
-	public void test() {
+	public void testEnDe() {
+		AbstractTranslator translator = new DictCCTranslator();
+		translator.setFrom(TranslationLocale.ENGLISH);
+		translator.setTo(TranslationLocale.GERMAN);
+		List<String> translations = translator.translateSingleWord("chair");
+		print(translations);
+		assertTrue(containsTranslations(translations.toArray(new String[translations.size()]), new String[]{"Stuhl", "Sitz"}));
+	}
+	
+	@Test
+	public void testDeEn() {
+		AbstractTranslator translator = new DictCCTranslator();
+		translator.setFrom(TranslationLocale.GERMAN);
+		translator.setTo(TranslationLocale.ENGLISH);
+		List<String> translations = translator.translateSingleWord("erwarten");
+		assertTrue(containsTranslations(translations.toArray(new String[translations.size()]), new String[]{"expect", "anticipate", "await", "estimate"}));
+	}
+	
+	@Test
+	public void testFrEn() {
 		AbstractTranslator translator = new DictCCTranslator();
 		translator.setFrom(TranslationLocale.FRENCH);
 		translator.setTo(TranslationLocale.ENGLISH);
 		List<String> translations = translator.translateSingleWord("sacré");
-		for(String t : translations) {
-			System.out.println(t);
-		}
+		assertTrue(containsTranslations(translations.toArray(new String[translations.size()]), new String[]{"holy", "sacred"}));
 	}
+	
+	
 
 }
