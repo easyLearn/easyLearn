@@ -30,6 +30,11 @@ public abstract class AbstractTranslator {
 	}
 
 	/**
+	 * Source of the last translation.
+	 */
+	protected String source;
+	
+	/**
 	 * Translates a single word or term without a context.
 	 * For instance: car, cloud but also cloud computing (words with a space)
 	 * should be supported.
@@ -67,6 +72,10 @@ public abstract class AbstractTranslator {
 
 	public void setTo(TranslationLocale to) {
 		To = to;
+	}
+
+	public String getSource() {
+		return source;
 	}
 	
 	

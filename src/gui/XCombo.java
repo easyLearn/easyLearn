@@ -9,7 +9,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 
 /**
- * Simple erweiterte Combo (mit Vorsicht verwenden), da sehr naiv programmiert.
+ * Simple erweiterte Combo (mit Vorsicht verwenden, da sehr naiv programmiert)
  * @author Tobias Wolf
  *
  * @param <T>
@@ -33,6 +33,8 @@ public class XCombo<T> {
 	
 	public void select(int index) {
 		combo.select(index);
+		selected = combo.getSelectionIndex();
+		selectedString = combo.getItem(selected);
 	}
 	
 	public T getSelectedItem() {

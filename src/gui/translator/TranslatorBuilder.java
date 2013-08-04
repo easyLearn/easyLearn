@@ -8,19 +8,29 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.util.List;
 
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.jnativehook.GlobalScreen;
@@ -38,10 +48,12 @@ public final class TranslatorBuilder {
 	public static final String TRANSLATOR_SEL_DICTCC = "Dict.cc Translator";
 	
 	private Composite parent;
-	private Combo comboTranslator;
+	private XCombo<String> comboTranslator;
 	private XCombo<TranslationLocale> comboFrom;
 	private XCombo<TranslationLocale> comboTo;
-	private String translatorSelection = "";
+	private AbstractTranslator translator;
+	private Link source;
+	private FormData sourceData;
 	private Text result;
 	private Shell shell;
 	private Robot robot;
@@ -64,18 +76,10 @@ public final class TranslatorBuilder {
 		Label labelTranslatorSelector = new Label(translatorSelectorArea, SWT.NONE);
 		labelTranslatorSelector.setText("\u00DCbersetzer: ");
 		
-		comboTranslator = new Combo(translatorSelectorArea, SWT.NONE);
-		comboTranslator.add(TRANSLATOR_SEL_GOOGLE);
-		comboTranslator.add(TRANSLATOR_SEL_DICTCC);
+		comboTranslator = new XCombo<String>(translatorSelectorArea, SWT.NONE);
+		comboTranslator.addItem(TRANSLATOR_SEL_GOOGLE);
+		comboTranslator.addItem(TRANSLATOR_SEL_DICTCC);
 		comboTranslator.select(0);
-		translatorSelection = TRANSLATOR_SEL_GOOGLE;
-		comboTranslator.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent arg0) {
-				System.out.println("Selected");
-				translatorSelection = (String) comboTranslator.getItem(comboTranslator.getSelectionIndex());
-			}
-		});
 		
 		createLanguagePanel(translatorSelectorArea);
 		
@@ -89,29 +93,77 @@ public final class TranslatorBuilder {
 			}
 		});
 		
+		/* Ergebnisse der Uebersetzung werden dort angezeigt */
+		
+		createResultArea(translatorArea, translatorSelectorArea);
+
+		return translatorArea;
+	}
+	
+	private void createResultArea(Composite translatorArea, Composite attachTo) {
+		source = new Link(translatorArea, SWT.NONE);
+		sourceData = new FormData();
+		sourceData.top = new FormAttachment(attachTo);
+		sourceData.left = new FormAttachment( 0 );
+		sourceData.right = new FormAttachment( 100 );
+		source.setLayoutData(sourceData);
+		source.addListener (SWT.Selection, new Listener () {
+	        private Shell s;
+			public void handleEvent(Event event) {
+	        	s = new Shell();
+	        	Point location = shell.getLocation();
+	        	Point newLocation = new Point(location.x + shell.getSize().x, location.y);
+	        	s.setLocation(newLocation);
+	        	s.setLayout(new FillLayout());
+	        	s.setSize(new Point(600, 400));
+	    		Browser b = new Browser(s, SWT.NONE); b.setUrl(event.text);
+	    		s.open();
+	    		s.layout();
+	        }
+	    });
+		setVisibilityOfSource(false);
 		// Uebersetzungsfeld in dem die Uebersetzung angezeigt wird
-		result = new Text(translatorArea, SWT.MULTI | SWT.BORDER | SWT.WRAP );
+		result = new Text(translatorArea, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.READ_ONLY );
+		
 		result.setBackground(new Color(parent.getDisplay(), 240, 240, 240));
 		FormData textData = new FormData();
-		textData.top = new FormAttachment(translatorSelectorArea);
+		textData.top = new FormAttachment(source);
 		textData.left = new FormAttachment( 0 );
 		textData.right = new FormAttachment( 100 );
 		textData.bottom = new FormAttachment( 100 );
 		result.setLayoutData(textData);
-		
-		return translatorArea;
+		result.addListener(SWT.MouseUp, new Listener() {
+	        @Override
+	        public void handleEvent(Event event) {
+	        	if(translator != null && translator.getSource() != null) setVisibilityOfSource(true);
+	        }
+	    });
 	}
-	// noch zu tun
+	
+	private void setVisibilityOfSource(boolean visible) {
+		if(visible) {
+			source.setVisible(true);
+        	sourceData.height = -1;
+        	
+		} else {
+			source.setVisible(false);
+			sourceData.height = 0;
+		}
+		parent.layout(true, true);
+	}
+	
 	private void createLanguagePanel(Composite translatorSelectorArea) {
 		comboFrom = new XCombo<TranslationLocale>(translatorSelectorArea, SWT.NONE);
 		comboFrom.addItem(TranslationLocale.AUTO);
 		comboFrom.addItem(TranslationLocale.ENGLISH);
 		comboFrom.addItem(TranslationLocale.GERMAN);
 		comboFrom.addItem(TranslationLocale.FRENCH);
+		comboFrom.select(0);
 		comboTo = new XCombo<TranslationLocale>(translatorSelectorArea, SWT.NONE);
 		comboTo.addItem(TranslationLocale.ENGLISH);
 		comboTo.addItem(TranslationLocale.GERMAN);
 		comboTo.addItem(TranslationLocale.FRENCH);
+		comboTo.select(0);
 	}
 	
 	private void addOnTranslateListener() {
@@ -148,9 +200,9 @@ public final class TranslatorBuilder {
 					String text = getClipboardData();
 					
 					if(text != null) {
-						AbstractTranslator translator = null;
+						translator = null;
 		
-						switch (translatorSelection) {
+						switch (comboTranslator.getSelectedItem()) {
 							case TranslatorBuilder.TRANSLATOR_SEL_GOOGLE : translator = new GoogleTranslator(); break;
 							case TranslatorBuilder.TRANSLATOR_SEL_DICTCC : translator = new DictCCTranslator(); break;
 							default : ;
@@ -168,6 +220,9 @@ public final class TranslatorBuilder {
 							Runnable setTranslation = new Runnable(){ public void run(){ 
 								shell.forceActive(); /* Fenster geht in Vordergrund */ 
 								setTranslationResult(t);
+								source.setText(translator.getSource() != null || translator.getSource().equals("") 
+										? "Quelle: <a>" + translator.getSource() + "</a>": "keine Angabe");
+								setVisibilityOfSource(false);
 							} };
 						    Display.getDefault().asyncExec(setTranslation);
 						}
@@ -206,7 +261,7 @@ public final class TranslatorBuilder {
 	}
 	
 	private void setTranslationResult(String translationResult) {
-		if(result != null) result.setText("Uebersetzung\n\n" + translationResult);
+		if(result != null) result.setText(translationResult);
 	}
 
 }

@@ -41,7 +41,8 @@ public class DictCCTranslator extends AbstractTranslator{
 	
 		List<Document> contents = null;
 		try {
-			contents = webparser.readUrls("http://" + sitePrefix(From, To) + website + URLEncoder.encode(word, "UTF-8"));
+			source = "http://" + sitePrefix(From, To) + website + URLEncoder.encode(word, "UTF-8");
+			contents = webparser.readUrls(source);
 		} catch (UnsupportedEncodingException e1) {
 			e1.printStackTrace();
 		}

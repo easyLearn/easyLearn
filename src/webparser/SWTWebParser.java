@@ -78,8 +78,8 @@ public class SWTWebParser extends AbstractWebParser{
 	 */
 	public Document readUntilNextProgress() {
 		while(!progress && System.currentTimeMillis() - timeBegin < timeout) {
-			try { Thread.sleep(100); } catch (InterruptedException e) {}
 			Display.getDefault().asyncExec(new Runnable(){ public void run(){ setProgress(browser.getText()); } });
+			try { Thread.sleep(100); } catch (InterruptedException e) {}
 		}
 		
 		completed = false;
