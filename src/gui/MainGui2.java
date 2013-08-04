@@ -1,6 +1,6 @@
 package gui;
 
-import gui.translator.TranslatorBuilder;
+import gui.translator.TranslationBuilder;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
@@ -17,7 +17,7 @@ import org.eclipse.swt.widgets.TabItem;
 public class MainGui2 {
 
 	protected Shell shell;
-	private TranslatorBuilder translatorBuilder;
+	private TranslationBuilder translatorBuilder;
 
 	/**
 	 * Launch the application.
@@ -81,7 +81,7 @@ public class MainGui2 {
 		
 		/* Translator Bereich */
 		
-		translatorBuilder = new TranslatorBuilder(tabFolder);
+		translatorBuilder = new TranslationBuilder(tabFolder);
 		Composite translatorArea = translatorBuilder.build();
 		tabTranslator.setControl(translatorArea);	
 		
