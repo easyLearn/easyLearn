@@ -4,7 +4,10 @@ import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
+import java.lang.annotation.Annotation;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -21,14 +24,13 @@ import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
 import translate.AbstractTranslator;
-import translate.translators.DictCCTranslator;
-import translate.translators.GoogleTranslator;
 
 public class TranslationController {
 
 	private Robot robot;
 	private AbstractTranslator translator;
 	private TranslationBuilder gui;
+	private Map<String, Class<? extends AbstractTranslator>> translatorMap = new HashMap<>();
 	
 	public TranslationController(TranslationBuilder gui) {
 		this.gui = gui;
@@ -43,6 +45,7 @@ public class TranslationController {
 		/* Wenn die Events getriggered werden, wird die Uebersetzungsmethode ausgefuehrt */
 		
 		addOnTranslateListener();
+		
 		gui.getTranslationButton().addSelectionListener(new SelectionAdapter() {
 			
 			@Override
@@ -77,6 +80,8 @@ public class TranslationController {
 	        }
 	    });
 		
+		addTranslators();
+		
 		/* Quelle ist anfangs nicht sichtbar */
 		
 		setVisibilityOfSource(false);
@@ -105,6 +110,40 @@ public class TranslationController {
 	}
 	
 	/**
+	 * Fuegt die annotierten Uebersetzer der Combo hinzu.
+	 */
+	private void addTranslators() {
+		for(Annotation a : gui.getClass().getAnnotations()) {
+			if(a instanceof Translators) {
+				Translators translators = (Translators) a;
+				for(Translator t : translators.value()) {
+					gui.getComboTranslator().addItem(t.name());
+					translatorMap.put(t.name(), t.translator());
+				}
+				gui.getComboTranslator().select(0);
+			}
+		}
+	}
+	
+	/**
+	 * Erstellt einen Uebersetzer, wenn einer in der Combo selektiert ist.
+	 * @return
+	 */
+	private AbstractTranslator createSelectedTranslator() {
+		String name = gui.getComboTranslator().getSelectedItem();
+		Class<? extends AbstractTranslator> c = translatorMap.get(name);
+		if(c != null)
+			try {
+				return c.newInstance();
+			} catch (InstantiationException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		return null;
+	}
+	
+	/**
 	 * Der Uebersetzungsprozess wird gestartet. Zunaechst wird ueber den Copy Befehl (Strg + C) ein markierte Text in die
 	 * Zwischenablage kopiert. Dann wird dieser Text dem Uebersetzer uebergeben. Dieser uebersetzt dann den Text.
 	 */
@@ -116,13 +155,7 @@ public class TranslationController {
 					String text = getClipboardData();
 					
 					if(text != null) {
-						translator = null;
-		
-						switch (gui.getComboTranslator().getSelectedItem()) {
-							case TranslationBuilder.TRANSLATOR_SEL_GOOGLE : translator = new GoogleTranslator(); break;
-							case TranslationBuilder.TRANSLATOR_SEL_DICTCC : translator = new DictCCTranslator(); break;
-							default : ;
-						}
+						translator = createSelectedTranslator();
 						if(translator == null) return;
 						translator.setFrom(gui.getComboFrom().getSelectedItem());
 						translator.setTo(gui.getComboTo().getSelectedItem());
@@ -201,6 +234,4 @@ public class TranslationController {
 	public AbstractTranslator getTranslator() {
 		return translator;
 	}
-	
-	
 }

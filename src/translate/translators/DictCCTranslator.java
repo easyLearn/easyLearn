@@ -5,7 +5,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
@@ -13,7 +12,6 @@ import translate.AbstractTranslator;
 import uk.ac.shef.wit.simmetrics.similaritymetrics.JaroWinkler;
 import webparser.AbstractWebParser;
 import webparser.JsoupWebParser;
-import webparser.SWTWebParser;
 
 /**
  * Speziell angepasster Translator fuer die Seite dict.cc

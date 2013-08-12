@@ -16,11 +16,14 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import translate.AbstractTranslator.TranslationLocale;
+import translate.translators.DictCCTranslator;
+import translate.translators.GoogleTranslator;
 
+@Translators( {
+	@Translator(name = "Google Translator", translator = GoogleTranslator.class),
+	@Translator(name = "Dict.cc Translator", translator = DictCCTranslator.class)
+} )
 public final class TranslationBuilder {
-	
-	public static final String TRANSLATOR_SEL_GOOGLE = "Google Translator";
-	public static final String TRANSLATOR_SEL_DICTCC = "Dict.cc Translator";
 	
 	private TranslationController controller;
 	
@@ -52,9 +55,6 @@ public final class TranslationBuilder {
 		labelTranslatorSelector.setText("\u00DCbersetzer: ");
 		
 		comboTranslator = new XCombo<String>(translatorSelectorArea, SWT.NONE);
-		comboTranslator.addItem(TRANSLATOR_SEL_GOOGLE);
-		comboTranslator.addItem(TRANSLATOR_SEL_DICTCC);
-		comboTranslator.select(0);
 		
 		createLanguagePanel(translatorSelectorArea);
 		
