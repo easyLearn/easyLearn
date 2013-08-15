@@ -1,5 +1,7 @@
 package gui.translator;
 
+import gui.overlay.Overlay;
+
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -30,6 +32,7 @@ public class TranslationController {
 	private Robot robot;
 	private AbstractTranslator translator;
 	private TranslationBuilder gui;
+	private Overlay overlay;
 	private Map<String, Class<? extends AbstractTranslator>> translatorMap = new HashMap<>();
 	
 	public TranslationController(TranslationBuilder gui) {
@@ -227,8 +230,14 @@ public class TranslationController {
 	    return (String) systemClipboard.getData(DataFlavor.stringFlavor);
 	}
 	
-	private void setTranslationResult(String translationResult) {
+	private void setTranslationResult(final String translationResult) {
 		if(gui.getResultText() != null) gui.getResultText().setText(translationResult);
+		
+		// TODO: noch anpassen
+		if(overlay == null || overlay.isDisposed()) 
+			overlay = new Overlay("", translationResult).create();
+		else overlay.setContent(translationResult);
+		
 	}
 
 	public AbstractTranslator getTranslator() {

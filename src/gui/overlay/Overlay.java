@@ -1,14 +1,18 @@
 package gui.overlay;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
+
+import org.eclipse.swt.browser.TitleListener;
 
 public class Overlay
 {
@@ -21,27 +25,41 @@ public class Overlay
 	
 	
 	private JFrame frame;
+	private JLabel title_label;
 	private JPanel topComp;
 	private JPanel closeComp;
 	private JPanel separatorComp;
-	private JPanel botComp;
+	private JTextArea text;
+	
+	private String title = "";
+	private String content = "";
 	
     public static void main(String[] args) {
         new Overlay().create();
         
     }
     
-    public void create() {
+    public Overlay() {
+    	title = "Overlay";
+    	content = "Hier kommt Text";
+    }
+
+    public Overlay(String title, String content) {
+    	this.title = title;
+    	this.content = content;
+    }
+    
+    public Overlay create() {
     	
         createFrame();
 
         createTopLevelComponents();
         
-        JLabel l1 = new JLabel("Overlay");
-        l1.setForeground(Color.WHITE);
-        l1.setToolTipText("Das ist ein Overlay");
+        title_label = new JLabel(title);
+        title_label.setToolTipText(title);
+        title_label.setForeground(Color.WHITE);
 //        l1.setFont(new Font("Arial", Font.PLAIN, 14));
-        topComp.add(l1);
+        topComp.add(title_label);
         
         JLabel close = new JLabel("x");
         close.setForeground(Color.WHITE);
@@ -50,13 +68,12 @@ public class Overlay
 			@Override
 			public void mouseReleased(MouseEvent arg0) {
 				close();
-				
 			}
 		});
         closeComp.add(close);
         
         new OverlayController(this);
-//        addListener();
+        return this;
     }
     
     private void createFrame() {
@@ -69,12 +86,11 @@ public class Overlay
         frame.pack();
         frame.setLocation(700, 400);
         frame.setBounds(0, 0, frame_width, frame_height);
-        frame.setResizable(true);
     }
     
     private void createTopLevelComponents() {
     	topComp = new JPanel(new FlowLayout());
-        topComp.setBackground(new Color(200, 0, 0, 250));
+        topComp.setBackground(new Color(200, 0, 0, 200));
         frame.add(topComp);
         
         // Close
@@ -86,9 +102,32 @@ public class Overlay
         separatorComp.setBackground(new Color(255, 255, 255, 150));
         frame.add(separatorComp);
         
-        botComp = new JPanel(new FlowLayout());
-        botComp.setBackground(new Color(200, 0, 0, 0));
-        frame.add(botComp);
+        text =new JTextArea(content);
+        text.setEditable(false);  
+//        text.setCursor(null);
+        text.setWrapStyleWord(true);  
+        text.setLineWrap(true);
+        text.setForeground(Color.WHITE);
+        text.setBackground(new Color(0, 0, 0, 0));
+        text.setFocusable(false);
+        frame.add(text);
+        
+        /* Bug Workaround -> sonst wird markiert angegklickter Text bei transparenten Hintergrund verwaschen/ undeutlich 
+        	also neu zeichnen uber setzen einer minimal anderen Groesse */
+        text.addMouseMotionListener(new MouseMotionAdapter() {
+			int i = 1;
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				Dimension size = text.getSize();
+				synchronized(size) {
+					text.setSize(size.width , size.height + i);
+					switch(i) {
+						case 1: i = -1; break;
+						case -1: i = 1; break;
+					}
+				}
+			}
+		});
         
         resize();
     }
@@ -99,14 +138,45 @@ public class Overlay
     	topComp.setBounds(0,0,frame_width - header_margin, header_height);
     	closeComp.setBounds(frame_width - header_margin, 0, header_margin, header_height);
     	separatorComp.setBounds(0,header_height+1, frame_width , separator_height);
-    	botComp.setBounds(0, header_height+1 + separator_height, frame_width, frame_height - header_height - separator_height);
+    	text.setBounds(0, header_height+1 + separator_height, frame_width, frame_height - header_height - separator_height);
     }
     
     public void close() {
     	frame.dispose();
+    	frame = null;
     } 
+    
+    public boolean isDisposed() {
+    	return (frame == null) ? true : false;
+    }
     
     public JFrame getFrame() {
 		return frame;
 	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+		title_label.setText(title);
+		
+	}
+
+	public String getContent() {
+		return content;
+	}
+
+	public void setContent(String content) {
+		this.content = content;
+		text.setText(content);
+	}
+
+	public JTextArea getText() {
+		return text;
+	}
+    
+	
+    
 }

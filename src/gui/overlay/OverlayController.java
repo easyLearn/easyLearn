@@ -1,8 +1,9 @@
 package gui.overlay;
 
-import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 
 public class OverlayController {
 
@@ -13,6 +14,7 @@ public class OverlayController {
 	private static final int DRAG_MODE_MOVE = 0;
 	private static final int DRAG_MODE_SIZE_LEFT = 1;
 	private static final int DRAG_MODE_SIZE_RIGHT = 2;
+	private static final int DRAG_MODE_SIZE_BOT = 3;
 	private Point start_drag;
     private Point start_loc;
     int w;
@@ -25,17 +27,21 @@ public class OverlayController {
 	}
 	
 	private void addListener() {
-		gui.getFrame().addMouseListener(new java.awt.event.MouseAdapter() {
+		MouseAdapter locationListener = new MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent evt) {
                 getLocation(evt);
                 System.out.println("Drag: " + DRAG_MODE);
             }
-        });
-		gui.getFrame().addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+        };
+        MouseMotionAdapter dragListener = new MouseMotionAdapter() {
             public void mouseDragged(java.awt.event.MouseEvent evt) {
                 onDrag(evt);
             }
-        });
+        };
+		gui.getText().addMouseListener(locationListener);
+		gui.getText().addMouseMotionListener(dragListener);
+		gui.getFrame().addMouseListener(locationListener);
+		gui.getFrame().addMouseMotionListener(dragListener);
 	}
 	
 	private void getLocation(java.awt.event.MouseEvent evt) {
@@ -51,6 +57,7 @@ public class OverlayController {
         int diff_y = start_drag.y - start_loc.y;
         if(diff_x < 5 ) { DRAG_MODE = DRAG_MODE_SIZE_LEFT; return; }
         if(diff_x > w - 5) { DRAG_MODE = DRAG_MODE_SIZE_RIGHT; return; }
+        if(diff_y > h -5 ) { DRAG_MODE = DRAG_MODE_SIZE_BOT; return; }
         
         DRAG_MODE = DRAG_MODE_MOVE; // ansonsten
 	}
@@ -74,14 +81,17 @@ public class OverlayController {
         		gui.resize();
         		break;
         	}
+        	case DRAG_MODE_SIZE_BOT: {
+        		gui.getFrame().setSize(w, h + offset.y);
+        		gui.resize();
+        		break;
+        	}
         	default: break;
         }
         
 	}
     
 	private Point getScreenLocation(MouseEvent e) {
-	    Point cursor = e.getPoint();
-	    Point target_location = gui.getFrame().getLocationOnScreen();
-	    return new Point((int) (target_location.getX() + cursor.getX()), (int) (target_location.getY() + cursor.getY()));
+		return e.getLocationOnScreen();
 	}
 }
