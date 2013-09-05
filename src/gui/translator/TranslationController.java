@@ -2,10 +2,14 @@ package gui.translator;
 
 import gui.overlay.Overlay;
 
+import java.awt.Cursor;
+import java.awt.MouseInfo;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.FlavorEvent;
+import java.awt.datatransfer.FlavorListener;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +28,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
+import org.jnativehook.mouse.NativeMouseEvent;
+import org.jnativehook.mouse.NativeMouseListener;
 
 import translate.AbstractTranslator;
 
@@ -53,7 +59,7 @@ public class TranslationController {
 			
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
-				onTranslate();
+				onTranslate("NORMAL");
 			}
 		});
 		
@@ -95,18 +101,36 @@ public class TranslationController {
 			GlobalScreen.getInstance().addNativeKeyListener(new NativeKeyListener() {
 				
 				@Override
-				public void nativeKeyTyped(NativeKeyEvent arg0) {
-				}
+				public void nativeKeyTyped(NativeKeyEvent arg0) {}
 				
 				@Override
-				public void nativeKeyReleased(NativeKeyEvent arg0) {
-				}
+				public void nativeKeyReleased(NativeKeyEvent arg0) {}
 				
 				@Override
 				public void nativeKeyPressed(NativeKeyEvent arg0) {
 					switch(arg0.getKeyCode()) {
-						case  NativeKeyEvent.VK_F8 : onTranslate(); break;
+						case  NativeKeyEvent.VK_F8 : onTranslate("OVERLAY"); break;
+						case  NativeKeyEvent.VK_F9 : onTranslate("NORMAL"); break;
 					}
+				}
+			});
+			GlobalScreen.getInstance().addNativeMouseListener(new NativeMouseListener() {
+				
+				@Override
+				public void nativeMouseReleased(NativeMouseEvent arg0) {
+//					onTranslate();
+				}
+				
+				@Override
+				public void nativeMousePressed(NativeMouseEvent arg0) {
+					System.out.println("Mouse pressed" + Cursor.getDefaultCursor().getType());
+					
+				}
+				
+				@Override
+				public void nativeMouseClicked(NativeMouseEvent arg0) {
+					System.out.println("Mouse Clicked");
+					
 				}
 			});
 		}
@@ -150,12 +174,12 @@ public class TranslationController {
 	 * Der Uebersetzungsprozess wird gestartet. Zunaechst wird ueber den Copy Befehl (Strg + C) ein markierte Text in die
 	 * Zwischenablage kopiert. Dann wird dieser Text dem Uebersetzer uebergeben. Dieser uebersetzt dann den Text.
 	 */
-	private void onTranslate() {
+	private void onTranslate(final String mode) {
 		new Thread() {
 			public void run() {
 				try {
 					copyMarkedText();
-					String text = getClipboardData();
+					final String text = getClipboardData();
 					
 					if(text != null) {
 						translator = createSelectedTranslator();
@@ -170,11 +194,10 @@ public class TranslationController {
 							}
 							final String t = translation;
 							Runnable setTranslation = new Runnable(){ public void run(){ 
-								gui.getShell().forceActive(); /* Fenster geht in Vordergrund */ 
-								setTranslationResult(t);
-								gui.getSource().setText(translator.getSource() != null || translator.getSource().equals("") 
-										? "Quelle: <a>" + translator.getSource() + "</a>": "keine Angabe");
-								setVisibilityOfSource(false);
+								if(mode.equals("NORMAL"))
+									setTranslationResultNormal(t);
+								else 
+									setTranslationResultOverlay(text, t);
 							} };
 						    Display.getDefault().asyncExec(setTranslation);
 						}
@@ -230,13 +253,18 @@ public class TranslationController {
 	    return (String) systemClipboard.getData(DataFlavor.stringFlavor);
 	}
 	
-	private void setTranslationResult(final String translationResult) {
+	private void setTranslationResultNormal(final String translationResult) {
+		gui.getShell().forceActive(); /* Fenster geht in Vordergrund */ 
 		if(gui.getResultText() != null) gui.getResultText().setText(translationResult);
-		
-		// TODO: noch anpassen
+		gui.getSource().setText(translator.getSource() != null || translator.getSource().equals("") 
+				? "Quelle: <a>" + translator.getSource() + "</a>": "keine Angabe");
+		setVisibilityOfSource(false);
+	}
+	
+	private void setTranslationResultOverlay(final String sourceText, final String translationResult) {
 		if(overlay == null || overlay.isDisposed()) 
-			overlay = new Overlay("", translationResult).create();
-		else overlay.setContent(translationResult);
+			overlay = new Overlay(sourceText, translationResult).create();
+		else overlay.setContent(sourceText, translationResult);
 		
 	}
 

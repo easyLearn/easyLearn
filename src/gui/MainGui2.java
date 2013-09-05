@@ -4,14 +4,15 @@ import gui.translator.TranslationBuilder;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import org.jnativehook.GlobalScreen;
-import org.jnativehook.NativeHookException;
-
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
+import org.jnativehook.GlobalScreen;
+import org.jnativehook.NativeHookException;
 
 
 public class MainGui2 {
@@ -73,6 +74,11 @@ public class MainGui2 {
 		shell.setSize(403, 265);
 		shell.setText("Easy Translator");
 		shell.setLayout(new FillLayout(SWT.HORIZONTAL));
+		
+		Menu menuBar = new Menu(shell, SWT.BAR);
+	    MenuItem fileMenuHeader = new MenuItem(menuBar, SWT.CASCADE);
+	    fileMenuHeader.setText("&File");
+		shell.setMenuBar(menuBar);
 		
 		TabFolder tabFolder = new TabFolder(shell, SWT.NONE);
 		
